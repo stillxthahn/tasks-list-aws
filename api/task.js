@@ -1,4 +1,4 @@
-import { ListenTablesCommand, DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { ListTablesCommand, DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
  UpdateCommand,
  PutCommand,
@@ -7,18 +7,17 @@ import {
  DeleteCommand,
 } from "@aws-sdk/lib-dynamodb";
 import crypto from "crypto";
-const client = new DynamDBClient({ region: "us-west-1" });
+
+const client = new DynamoDBClient({ region: "ap-southeast-1" });
 const docClient = DynamoDBDocumentClient.from(client);
 
-// Scan to fetch ALL data
 export const fetchTasks = async () => {
  const command = new ScanCommand({
-  // Alternative to an actual attribute name
   ExpressionAttributeNames: { "#name": "name" },
-  // What returned
   ProjectionExpression: "id, #name, completed",
   TableName: "Tasks",
  });
+
  const response = await docClient.send(command);
 
  return response;
@@ -34,6 +33,7 @@ export const createTasks = async ({ name, completed }) => {
    completed,
   },
  });
+
  const response = await docClient.send(command);
 
  return response;
@@ -42,11 +42,12 @@ export const createTasks = async ({ name, completed }) => {
 export const updateTasks = async ({ id, name, completed }) => {
  const command = new UpdateCommand({
   TableName: "Tasks",
-  // Let DynamoDB knows which item to be updated
   Key: {
    id,
   },
-  ExpressionAttributeNames: { "#name": "name" },
+  ExpressionAttributeNames: {
+   "#name": "name",
+  },
   UpdateExpression: "set #name = :n, completed = :c",
   ExpressionAttributeValues: {
    ":n": name,
@@ -54,9 +55,10 @@ export const updateTasks = async ({ id, name, completed }) => {
   },
   ReturnValues: "ALL_NEW",
  });
+
  const response = await docClient.send(command);
 
- return respone;
+ return response;
 };
 
 export const deleteTasks = async (id) => {
@@ -66,6 +68,8 @@ export const deleteTasks = async (id) => {
    id,
   },
  });
+
  const response = await docClient.send(command);
+
  return response;
 };
